@@ -493,6 +493,70 @@ async def toggle_address(
     return _after_mutation(request, conn, user, page)
 
 
+# --- настройки сервиса ------------------------------------------------------
+
+#: key -> (подпись в форме, подсказка)
+SETTING_FIELDS = (
+    ("timeout_ms", "Таймаут на пакет, мс", "fping -t"),
+    ("packets", "Пакетов на цель", "fping -c"),
+    ("interval_ms", "Интервал между пакетами одной цели, мс", "fping -p"),
+    ("round_interval_s", "Пауза между раундами опроса, с", ""),
+    ("ui_refresh_s", "Автообновление интерфейса, с", ""),
+    ("max_targets", "Защитный лимит размера батча", ""),
+)
+
+
+def _settings_context(
+    conn: sqlite3.Connection,
+    user: sqlite3.Row,
+    error: str | None = None,
+    success: bool = False,
+) -> dict:
+    values = settings.raw(conn)
+    return {
+        "user": user,
+        "fields": SETTING_FIELDS,
+        "values": values,
+        "error": error,
+        "success": success,
+    }
+
+
+@router.get("/settings", response_class=HTMLResponse)
+def settings_form(
+    request: Request,
+    user: sqlite3.Row = Depends(require_admin),
+    conn: sqlite3.Connection = Depends(get_conn),
+):
+    return render(request, "settings.html", **_settings_context(conn, user))
+
+
+@router.post("/settings", response_class=HTMLResponse)
+async def settings_submit(
+    request: Request,
+    user: sqlite3.Row = Depends(require_admin),
+    conn: sqlite3.Connection = Depends(get_conn),
+):
+    form = await request.form()
+    check_csrf(request, form)
+    values = {
+        key: form.get(key)
+        for key, _, _ in SETTING_FIELDS
+        if form.get(key) is not None
+    }
+    try:
+        settings.update(conn, values)
+    except settings.SettingsError as exc:
+        return render(
+            request, "settings.html", **_settings_context(conn, user, str(exc))
+        )
+    return render(
+        request,
+        "settings.html",
+        **_settings_context(conn, user, success=True),
+    )
+
+
 # --- экран адреса ----------------------------------------------------------
 
 RANGE_LABELS = {

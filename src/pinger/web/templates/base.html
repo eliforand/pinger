@@ -23,7 +23,10 @@
       <a class="navbar-brand" href="/"><span class="brand-dot"></span>pinger</a>
       <div class="d-flex align-items-center gap-2 ms-auto">
         {% if user %}
-          {% if user.role == 'admin' %}<a class="nav-link" href="/users">Пользователи</a>{% endif %}
+          {% if user.role == 'admin' %}
+            <a class="nav-link" href="/users">Пользователи</a>
+            <a class="nav-link" href="/settings">Настройки</a>
+          {% endif %}
           <a class="nav-link" href="/profile">Профиль</a>
           <span class="badge text-bg-secondary badge-user">{{ user.username }}</span>
           <form method="post" action="/logout" class="m-0">

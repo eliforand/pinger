@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Настройки — pinger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Настройки сервиса</h1>
+</div>
+
+{% if error %}<div class="alert alert-danger alert-error" role="alert">{{ error }}</div>{% endif %}
+{% if success %}<div class="alert alert-success alert-ok" role="status">Настройки сохранены. Сервис пинга применит их со следующего раунда.</div>{% endif %}
+
+<div class="card" style="max-width: 34rem">
+  <div class="card-body">
+    <form method="post" action="/settings">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      {% for key, label, hint in fields %}
+        <label class="form-label">{{ label }}{% if hint %} <span class="text-secondary">({{ hint }})</span>{% endif %}</label>
+        <input class="form-control form-control-sm" type="number" min="1"
+               name="{{ key }}" value="{{ values[key] }}" required>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary btn-sm mt-3">Сохранить</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
