@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ page.name }} — pinger{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="/">← Все страницы</a></div>
+<div class="page-head">
+  <h1>{{ page.name }}</h1>
+  {% if not page.enabled %}<span class="badge text-bg-danger">выключена</span>{% endif %}
+  <span class="spacer"></span>
+  <span class="actions">
+    {% if can_edit %}
+      <a href="/pages/{{ page.id }}/edit" class="btn btn-outline-secondary btn-sm">✎ Редактировать</a>
+    {% endif %}
+  </span>
+</div>
+{% if page.description %}<p class="text-secondary small">{{ page.description }}</p>{% endif %}
+{% include "partials/page_view.html" %}
+{% endblock %}

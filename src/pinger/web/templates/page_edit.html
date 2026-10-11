@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ page.name }} · редактирование — pinger{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="/">← Все страницы</a> · <a href="/pages/{{ page.id }}">просмотр</a></div>
+<div class="page-head">
+  <h1>{{ page.name }}</h1>
+  <span class="badge text-bg-primary">редактирование</span>
+  <span class="spacer"></span>
+  <span class="actions">
+    {% if is_admin %}<a href="/edit" class="btn btn-outline-secondary btn-sm">Настройки страниц</a>{% endif %}
+    <a href="/pages/{{ page.id }}" class="btn btn-outline-secondary btn-sm">← К просмотру</a>
+  </span>
+</div>
+
+{% include "partials/page_edit.html" %}
+
+<!-- Диалог: новая строка -->
+<dialog id="dialog-new-row">
+  <div class="dialog-head">
+    <h2>Новая строка</h2>
+    <button type="button" class="btn-close" data-close-dialog aria-label="Закрыть"></button>
+  </div>
+  <form method="post" action="/pages/{{ page.id }}/targets"
+        hx-post="/pages/{{ page.id }}/targets"
+        hx-target="#page-body" hx-swap="outerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="dialog-body">
+      <label class="form-label">Название строки</label>
+      <input class="form-control" name="name" autofocus placeholder="Например: Веб-серверы">
+    </div>
+    <div class="dialog-foot">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-close-dialog>Отмена</button>
+      <button type="submit" class="btn btn-primary btn-sm">Добавить</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Диалог: новый адрес (строка выбирается кнопкой «＋ адрес») -->
+<dialog id="dialog-new-address">
+  <div class="dialog-head">
+    <h2>Новый адрес</h2>
+    <button type="button" class="btn-close" data-close-dialog aria-label="Закрыть"></button>
+  </div>
+  <form method="post" action="/pages/{{ page.id }}/addresses"
+        hx-post="/pages/{{ page.id }}/addresses"
+        hx-target="#page-body" hx-swap="outerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="target_id" id="new-address-target-id" value="">
+    <div class="dialog-body">
+      <p class="text-secondary small mb-2">Строка: <strong id="new-address-row-name"></strong></p>
+      <label class="form-label">IP-адрес</label>
+      <input class="form-control" name="address" id="new-address-input" required
+             placeholder="Например: 10.0.0.1" pattern="[A-Za-z0-9.\-:_]+">
+    </div>
+    <div class="dialog-foot">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-close-dialog>Отмена</button>
+      <button type="submit" class="btn btn-primary btn-sm">Добавить</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

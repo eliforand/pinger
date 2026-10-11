@@ -1,0 +1,84 @@
+<div id="page-body">
+  {% if error %}<div class="alert alert-danger alert-error" role="alert">{{ error }}</div>{% endif %}
+
+  <div class="page-head" style="margin-bottom:.6rem">
+    <button type="button" class="btn btn-primary btn-sm" data-open-dialog="dialog-new-row">＋ Добавить строку</button>
+  </div>
+
+  {% if not rows %}
+    <div class="empty">
+      <span class="big">📭</span>
+      Строк пока нет — добавьте первую.
+    </div>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table table-sm table-hover rows">
+        <thead>
+          <tr>
+            <th>Строка</th>
+            <th>Адреса</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td>
+                <form method="post" action="/targets/{{ row.target.id }}/rename"
+                      hx-post="/targets/{{ row.target.id }}/rename"
+                      hx-target="#page-body" hx-swap="outerHTML"
+                      class="d-flex gap-1 align-items-center">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <input class="form-control form-control-sm" name="name"
+                         value="{{ row.target.name or '' }}"
+                         placeholder="название" aria-label="Название строки">
+                  <button type="submit" class="btn btn-outline-secondary btn-sm">ОК</button>
+                </form>
+              </td>
+              <td>
+                <div class="cells">
+                  {% for cell in row.cells %}
+                    <span class="chip ip {{ cell.state or 'unknown' }}{% if not cell.address.enabled %} disabled{% endif %}">
+                      <span class="dot"></span>
+                      <a href="/addresses/{{ cell.address.id }}">{{ cell.address.address }}</a>
+                      <form method="post" action="/addresses/{{ cell.address.id }}/toggle"
+                            hx-post="/addresses/{{ cell.address.id }}/toggle"
+                            hx-target="#page-body" hx-swap="outerHTML"
+                            style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="chip-x"
+                                title="{{ 'выключить из опроса' if cell.address.enabled else 'включить в опрос' }}">⏻</button>
+                      </form>
+                      <form method="post" action="/addresses/{{ cell.address.id }}/delete"
+                            hx-post="/addresses/{{ cell.address.id }}/delete"
+                            hx-target="#page-body" hx-swap="outerHTML"
+                            style="display:inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="chip-x" title="Удалить адрес"
+                                data-confirm="Точно?">×</button>
+                      </form>
+                    </span>
+                  {% endfor %}
+                  <button type="button" class="chip add-addr"
+                          data-open-dialog="dialog-new-address"
+                          data-target-id="{{ row.target.id }}"
+                          data-row-name="{{ row.target.name or 'без названия' }}"
+                          title="Добавить адрес в строку">＋ адрес</button>
+                </div>
+              </td>
+              <td class="actions">
+                <form method="post" action="/targets/{{ row.target.id }}/delete"
+                      hx-post="/targets/{{ row.target.id }}/delete"
+                      hx-target="#page-body" hx-swap="outerHTML">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button type="submit" class="btn btn-outline-danger btn-sm"
+                          data-confirm="Точно удалить строку?">Удалить строку</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>

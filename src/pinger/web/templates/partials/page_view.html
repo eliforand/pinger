@@ -1,0 +1,55 @@
+<div id="page-body"
+     data-status-url="/pages/{{ page.id }}/status.json"
+     data-refresh-s="{{ ui_refresh_s }}">
+  {% if not page.enabled %}
+    <div class="alert alert-warning alert-error" role="status">Страница выключена — адреса не опрашиваются.</div>
+  {% endif %}
+
+  <div class="summary" data-role="summary" style="margin-bottom:.75rem">
+    <span class="pill up" data-stat="up">{{ stats.up }} up</span>
+    <span class="pill down" data-stat="down"{% if not stats.down %} hidden{% endif %}>{{ stats.down }} down</span>
+    <span class="pill" data-stat="no_data"{% if not stats.no_data %} hidden{% endif %}>{{ stats.no_data }} без данных</span>
+    <span class="pill" data-stat="total">всего {{ stats.total }}</span>
+    <span class="pill">обновление каждые {{ ui_refresh_s }} с</span>
+  </div>
+
+  {% if not rows %}
+    <div class="empty" data-role="empty">
+      <span class="big">📭</span>
+      На странице пока нет строк.
+      {% if can_edit %}<a href="/pages/{{ page.id }}/edit">Добавить первую →</a>{% endif %}
+    </div>
+  {% else %}
+    <div class="table-wrap">
+      <table class="table table-sm table-hover rows">
+        <thead>
+          <tr>
+            <th>Строка</th>
+            <th>Адреса</th>
+          </tr>
+        </thead>
+        <tbody data-role="rows">
+          {% for row in rows %}
+            <tr data-target-id="{{ row.target.id }}">
+              <td class="row-name">{{ row.target.name or "—" }}</td>
+              <td>
+                <div class="cells">
+                  {% for cell in row.cells %}
+                    <span class="chip ip {{ cell.state or 'unknown' }}{% if not cell.address.enabled %} disabled{% endif %}"
+                          data-address-id="{{ cell.address.id }}"
+                          title="{% if cell.state == 'up' %}доступен{% elif cell.state == 'down' %}недоступен{% else %}данных ещё нет{% endif %}{% if not cell.address.enabled %} · выключен{% endif %}">
+                      <span class="dot"></span>
+                      <a href="/addresses/{{ cell.address.id }}">{{ cell.address.address }}</a>
+                      {% if cell.uptime is not none %}<span class="uptime" title="uptime за последние 24 ч">{{ cell.uptime }}% · 24ч</span>{% endif %}
+                    </span>
+                  {% endfor %}
+                  {% if not row.cells %}<span class="text-secondary small">нет адресов</span>{% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>

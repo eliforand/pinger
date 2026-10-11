@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Пользователи — pinger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Пользователи</h1>
+  <span class="spacer"></span>
+  <span class="actions">
+    <button type="button" class="btn btn-primary btn-sm" data-open-dialog="dialog-new-user">＋ Создать пользователя</button>
+  </span>
+</div>
+{% if error %}<div class="alert alert-danger alert-error error" role="alert">{{ error }}</div>{% endif %}
+
+{% for u in users %}
+  <div class="card user-card" id="user-{{ u.id }}">
+    <div class="card-body">
+      <h2>{{ u.username }}
+        {% if u.role == 'admin' %}<span class="badge text-bg-primary">админ</span>{% endif %}
+        {% if not u.is_active %}<span class="badge text-bg-danger">выключен</span>{% endif %}
+      </h2>
+      <form method="post" action="/users/{{ u.id }}/update">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div class="user-grid">
+          <div>
+            <label class="form-label">Роль</label>
+            <select class="form-select form-select-sm" name="role">
+              {% for r in valid_roles %}
+                <option value="{{ r }}" {% if u.role == r %}selected{% endif %}>{{ r }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Режим доступа</label>
+            <select class="form-select form-select-sm" name="access_mode">
+              {% for m in valid_modes %}
+                <option value="{{ m }}" {% if u.access_mode == m %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" name="is_active" id="act-{{ u.id }}" {% if u.is_active %}checked{% endif %}>
+            <label class="form-check-label" for="act-{{ u.id }}">активен</label>
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Видимость страниц (для режимов except/only; для all игнорируется)</legend>
+          <div class="checks">
+            {% for p in pages %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="access_page" value="{{ p.id }}"
+                       id="acc-{{ u.id }}-{{ p.id }}"
+                       {% if p.id in access_map.get(u.id, []) %}checked{% endif %}>
+                <label class="form-check-label" for="acc-{{ u.id }}-{{ p.id }}">{{ p.name }}</label>
+              </div>
+            {% endfor %}
+            {% if not pages %}<span class="text-secondary small">Страниц пока нет.</span>{% endif %}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Право редактирования страниц</legend>
+          <div class="checks">
+            {% for p in pages %}
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="edit_page" value="{{ p.id }}"
+                       id="ed-{{ u.id }}-{{ p.id }}"
+                       {% if p.id in edit_map.get(u.id, []) %}checked{% endif %}>
+                <label class="form-check-label" for="ed-{{ u.id }}-{{ p.id }}">{{ p.name }}</label>
+              </div>
+            {% endfor %}
+            {% if not pages %}<span class="text-secondary small">Страниц пока нет.</span>{% endif %}
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary btn-sm mt-2">Сохранить</button>
+      </form>
+
+      <form method="post" action="/users/{{ u.id }}/password" class="d-flex gap-2 align-items-end mt-2 flex-wrap">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <div>
+          <label class="form-label">Сброс пароля</label>
+          <input class="form-control form-control-sm" name="password" type="password" minlength="8" placeholder="новый пароль">
+        </div>
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Сбросить пароль</button>
+      </form>
+    </div>
+  </div>
+{% endfor %}
+
+<dialog id="dialog-new-user" {% if error %}open{% endif %}>
+  <div class="dialog-head">
+    <h2>Новый пользователь</h2>
+    <button type="button" class="btn-close" data-close-dialog aria-label="Закрыть"></button>
+  </div>
+  <form method="post" action="/users">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="dialog-body">
+      {% if error %}<div class="alert alert-danger alert-error" role="alert">{{ error }}</div>{% endif %}
+      <div class="row g-2">
+        <div class="col-6">
+          <label class="form-label">Логин</label>
+          <input class="form-control" name="username" required autofocus>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Пароль</label>
+          <input class="form-control" name="password" type="password" required minlength="8">
+          <div class="form-text">минимум 8 символов</div>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Роль</label>
+          <select class="form-select" name="role">
+            <option value="user">user</option>
+            <option value="admin">admin</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Режим доступа</label>
+          <select class="form-select" name="access_mode">
+            <option value="all">all — все страницы</option>
+            <option value="except">except — кроме отмеченных</option>
+            <option value="only">only — только отмеченные</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-foot">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-close-dialog>Отмена</button>
+      <button type="submit" class="btn btn-primary btn-sm">Создать</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

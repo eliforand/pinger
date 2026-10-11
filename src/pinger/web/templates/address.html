@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ address.address }} — pinger{% endblock %}
+{% block content %}
+<div class="crumbs"><a href="/">← Все страницы</a> · <a href="/pages/{{ page.id }}">{{ page.name }}</a></div>
+<div class="page-head">
+  <h1>{{ address.address }}</h1>
+  {% if state == 'up' %}<span class="pill up">доступен</span>
+  {% elif state == 'down' %}<span class="pill down">недоступен</span>
+  {% else %}<span class="pill">данных ещё нет</span>{% endif %}
+  {% if not address.enabled %}<span class="badge text-bg-danger">выключен</span>{% endif %}
+  <span class="spacer"></span>
+  {% if st %}<span class="text-secondary small">последняя проверка: {{ st.ts|fmt_time }}</span>{% endif %}
+</div>
+
+<div class="range-tabs" role="group" aria-label="Диапазон">
+  {% for r in ranges %}
+    <a href="?range={{ r }}" class="btn {% if r == range_key %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ range_labels[r] }}</a>
+  {% endfor %}
+</div>
+
+<div class="uptime-hero">
+  <span class="label">Uptime за «{{ range_labels[range_key] }}»:</span>
+  {% if uptime is none %}
+    <span class="text-secondary">данных ещё нет</span>
+  {% else %}
+    <span class="value {{ 'up' if uptime >= 99 else ('down' if uptime < 90 else '') }}">{{ uptime }}%</span>
+  {% endif %}
+</div>
+
+{% if blocks %}
+  <div class="bar" role="img" aria-label="История доступности">
+    {% for b in blocks %}
+      <span class="seg {{ b.state }}{% if b.open %} open{% endif %}"
+            style="width: {{ '%.4f'|format(b.pct) }}%"
+            title="{{ 'доступен' if b.state == 'up' else 'недоступен' }}: {{ b.started_at|fmt_time }} — {{ b.ended_at|fmt_time }}"></span>
+    {% endfor %}
+  </div>
+  <div class="table-wrap">
+    <table class="table table-sm table-hover">
+      <thead>
+        <tr><th>Состояние</th><th>Начало</th><th>Конец</th><th>Длительность</th></tr>
+      </thead>
+      <tbody>
+        {% for b in blocks %}
+          <tr>
+            <td>
+              {% if b.state == 'up' %}<span class="pill up">доступен</span>
+              {% else %}<span class="pill down">недоступен</span>{% endif %}
+            </td>
+            <td>{{ b.started_at.strftime('%d.%m %H:%M:%S') }}</td>
+            <td>{{ b.ended_at.strftime('%d.%m %H:%M:%S') }}{% if b.open %} <span class="text-secondary">(сейчас)</span>{% endif %}</td>
+            <td>{{ b.duration_s|round|int }} с</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty">
+    <span class="big">📉</span>
+    Нет данных за выбранный период.
+  </div>
+{% endif %}
+{% endblock %}

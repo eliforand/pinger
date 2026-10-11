@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Страницы · редактирование — pinger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Страницы</h1>
+  <span class="badge text-bg-primary">редактирование</span>
+  <span class="spacer"></span>
+  <span class="actions">
+    <a href="/" class="btn btn-outline-secondary btn-sm">← К просмотру</a>
+    <button type="button" class="btn btn-primary btn-sm" data-open-dialog="dialog-new-page">＋ Добавить страницу</button>
+  </span>
+</div>
+
+{% if error %}<div class="alert alert-danger alert-error" role="alert">{{ error }}</div>{% endif %}
+
+{% if not pages %}
+  <div class="empty">
+    <span class="big">🗂</span>
+    Страниц пока нет — добавьте первую.
+  </div>
+{% else %}
+  {% for page in pages %}
+    <div class="card user-card" id="edit-page-{{ page.id }}">
+      <div class="card-body">
+        <h2>
+          <a href="/pages/{{ page.id }}" class="text-decoration-none">{{ page.name }}</a>
+          <span class="badge text-bg-danger"{% if page.enabled %} hidden{% endif %}>выключена</span>
+        </h2>
+        {% if page.description %}<p class="text-secondary small mb-2">{{ page.description }}</p>{% endif %}
+        <div class="summary mb-2">
+          <span class="pill up">{{ page.up }} up</span>
+          {% if page.down %}<span class="pill down">{{ page.down }} down</span>{% endif %}
+          {% if page.no_data %}<span class="pill">{{ page.no_data }} без данных</span>{% endif %}
+          <span class="pill">всего {{ page.total }}</span>
+        </div>
+
+        <form method="post" action="/pages/{{ page.id }}/update">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <div class="row g-2">
+            <div class="col-md-5">
+              <label class="form-label">Название</label>
+              <input class="form-control form-control-sm" name="name" value="{{ page.name }}" required>
+            </div>
+            <div class="col-md-7">
+              <label class="form-label">Описание</label>
+              <input class="form-control form-control-sm" name="description" value="{{ page.description or '' }}">
+            </div>
+          </div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="enabled" id="en-{{ page.id }}" {% if page.enabled %}checked{% endif %}>
+            <label class="form-check-label" for="en-{{ page.id }}">страница включена (адреса опрашиваются)</label>
+          </div>
+          <div class="d-flex gap-2 mt-2 flex-wrap">
+            <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+            <a href="/pages/{{ page.id }}/edit" class="btn btn-outline-secondary btn-sm">Состав страницы →</a>
+          </div>
+        </form>
+
+        <form method="post" action="/pages/{{ page.id }}/delete" class="mt-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-outline-danger btn-sm"
+                  data-confirm="Точно удалить страницу?">Удалить страницу</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<dialog id="dialog-new-page" {% if error %}open{% endif %}>
+  <div class="dialog-head">
+    <h2>Новая страница</h2>
+    <button type="button" class="btn-close" data-close-dialog aria-label="Закрыть"></button>
+  </div>
+  <form method="post" action="/pages">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="dialog-body">
+      {% if error %}<div class="alert alert-danger alert-error" role="alert">{{ error }}</div>{% endif %}
+      <label class="form-label">Название</label>
+      <input class="form-control" name="name" required autofocus placeholder="Например: Серверы">
+      <label class="form-label mt-2">Описание</label>
+      <input class="form-control" name="description" placeholder="Необязательно">
+    </div>
+    <div class="dialog-foot">
+      <button type="button" class="btn btn-outline-secondary btn-sm" data-close-dialog>Отмена</button>
+      <button type="submit" class="btn btn-primary btn-sm">Создать</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

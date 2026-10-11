@@ -1,0 +1,239 @@
+/* pinger — компактная тема поверх Bootstrap 5.3. */
+
+:root {
+  --up: #2fbf71;
+  --up-soft: rgba(47, 191, 113, .15);
+  --down: #e5534b;
+  --down-soft: rgba(229, 83, 75, .15);
+}
+
+html { font-size: 15px; }
+body { font-size: .875rem; }
+
+/* --- шапка ------------------------------------------------------------- */
+
+.navbar { padding: .4rem 0; }
+.navbar .navbar-brand { font-weight: 600; font-size: .95rem; display: inline-flex; align-items: center; gap: .45rem; }
+.navbar .brand-dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--up); box-shadow: 0 0 0 3px var(--up-soft); }
+.navbar .nav-link { padding: .3rem .6rem; font-size: .85rem; }
+.navbar .btn { --bs-btn-padding-y: .25rem; --bs-btn-padding-x: .6rem; font-size: .8rem; }
+.navbar .badge-user { font-weight: 500; font-size: .78rem; padding: .3rem .55rem; border-radius: 999px; }
+
+main { padding-top: 1.25rem; padding-bottom: 4rem; }
+
+/* --- заголовки экранов --------------------------------------------------- */
+
+.page-head { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.page-head h1 { font-size: 1.25rem; margin: 0; font-weight: 600; }
+.page-head .spacer { margin-left: auto; }
+.page-head .actions { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+.crumbs { font-size: .8rem; margin-bottom: .5rem; }
+.crumbs a { text-decoration: none; }
+
+/* --- карточки страниц ------------------------------------------------------ */
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: .75rem; }
+
+a.page-card-link { text-decoration: none; color: inherit; display: block; }
+a.page-card-link:hover { text-decoration: none; color: inherit; }
+
+.page-card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: .5rem;
+  padding: .8rem .9rem;
+  background: var(--bs-body-bg);
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  height: 100%;
+  transition: border-color .12s ease;
+}
+a.page-card-link:hover .page-card { border-color: var(--bs-primary); }
+.page-card .top { display: flex; align-items: center; gap: .5rem; }
+.page-card .top h2 { font-size: .95rem; font-weight: 600; margin: 0; }
+.page-card .desc { font-size: .78rem; color: var(--bs-secondary-color); }
+.page-card .card-actions { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: auto; padding-top: .5rem; }
+.page-card .card-actions form { margin: 0; }
+.page-card .card-actions .btn { font-size: .78rem; padding: .2rem .55rem; }
+
+/* --- сводки и полосы --------------------------------------------------------- */
+
+.summary { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .72rem;
+  font-weight: 500;
+  padding: .1rem .5rem;
+  border-radius: 999px;
+  border: 1px solid var(--bs-border-color);
+  color: var(--bs-secondary-color);
+  white-space: nowrap;
+}
+.pill::before { content: ""; width: .4rem; height: .4rem; border-radius: 50%; background: currentColor; }
+.pill.up { color: var(--up); background: var(--up-soft); border-color: transparent; }
+.pill.down { color: var(--down); background: var(--down-soft); border-color: transparent; }
+
+.ratio-bar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; background: var(--bs-border-color); }
+.ratio-bar .up { background: var(--up); }
+.ratio-bar .down { background: var(--down); }
+.ratio-bar .nodata { background: transparent; }
+
+/* --- таблицы ------------------------------------------------------------------- */
+
+.table-wrap { border: 1px solid var(--bs-border-color); border-radius: .5rem; overflow-x: auto; }
+.table-wrap > table { margin: 0; }
+table.rows th { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--bs-secondary-color); font-weight: 600; }
+table.rows td { vertical-align: middle; }
+table.rows .row-name { font-weight: 500; white-space: nowrap; }
+table.rows td.actions { white-space: nowrap; text-align: right; }
+table.rows td.actions form { display: inline-block; margin: 0 0 0 .3rem; }
+
+/* компактные контролы в таблицах */
+table.rows .form-control, table.rows .form-select { padding: .2rem .5rem; font-size: .8rem; width: auto; }
+table.rows .btn { font-size: .75rem; padding: .15rem .5rem; }
+
+/* --- IP-чипы ----------------------------------------------------------------------- */
+
+.cells { display: flex; gap: .35rem; flex-wrap: wrap; align-items: center; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .12rem .55rem;
+  border-radius: 999px;
+  border: 1px solid var(--bs-border-color);
+  font-family: var(--bs-font-monospace);
+  font-size: .78rem;
+  background: var(--bs-tertiary-bg);
+}
+.chip .dot { width: .45rem; height: .45rem; border-radius: 50%; background: var(--bs-secondary-color); flex: none; }
+.chip a { color: inherit; text-decoration: none; }
+.chip a:hover { color: var(--bs-primary); }
+.chip .uptime { color: var(--bs-secondary-color); font-size: .68rem; font-family: var(--bs-body-font-family); }
+
+.chip.up { background: var(--up-soft); border-color: transparent; }
+.chip.up .dot { background: var(--up); }
+.chip.down { background: var(--down-soft); border-color: transparent; }
+.chip.down .dot { background: var(--down); animation: blink 1.4s ease-in-out infinite; }
+.chip.unknown .dot { opacity: .5; }
+.chip.disabled { opacity: .45; }
+.chip .chip-x {
+  border: none;
+  background: none;
+  color: var(--bs-secondary-color);
+  cursor: pointer;
+  font-size: .85rem;
+  line-height: 1;
+  padding: 0 .1rem;
+  margin: 0;
+}
+.chip .chip-x:hover { color: var(--down); }
+
+button.chip.add-addr {
+  border: 1px dashed var(--bs-border-color);
+  background: transparent;
+  color: var(--bs-secondary-color);
+  border-radius: 999px;
+  padding: .12rem .55rem;
+  font-size: .75rem;
+  margin: 0;
+}
+button.chip.add-addr:hover { color: var(--bs-primary); border-color: var(--bs-primary); }
+
+@keyframes blink { 50% { opacity: .35; } }
+
+/* --- формы --------------------------------------------------------------------------- */
+
+.form-label { font-size: .8rem; margin-bottom: .2rem; }
+.form-control, .form-select { font-size: .85rem; }
+.form-check-label { font-size: .85rem; }
+.checks { display: flex; flex-wrap: wrap; gap: .25rem .9rem; }
+.checks .form-check { margin: 0; padding-left: 1.3rem; }
+
+/* --- экран адреса ------------------------------------------------------------------------ */
+
+.range-tabs { display: flex; gap: .3rem; flex-wrap: wrap; margin: .75rem 0; }
+.range-tabs .btn { font-size: .78rem; padding: .2rem .7rem; border-radius: 999px; }
+
+.uptime-hero { display: flex; align-items: baseline; gap: .5rem; margin: .25rem 0 .75rem; }
+.uptime-hero .value { font-size: 1.6rem; font-weight: 700; }
+.uptime-hero .value.up { color: var(--up); }
+.uptime-hero .value.down { color: var(--down); }
+.uptime-hero .label { color: var(--bs-secondary-color); font-size: .85rem; }
+
+.bar { display: flex; gap: 2px; height: 1.8rem; margin: .4rem 0 1rem; }
+.seg { border-radius: 2px; min-width: 2px; }
+.seg.up { background: var(--up); }
+.seg.down { background: var(--down); }
+.seg.open { opacity: .55; }
+
+/* --- auth ---------------------------------------------------------------------------------- */
+
+.auth-wrap { max-width: 22rem; margin: 10vh auto 0; }
+.auth-wrap .card { padding: 1.25rem; }
+.auth-wrap h1 { font-size: 1.15rem; font-weight: 600; }
+.auth-wrap .btn-primary { width: 100%; margin-top: .75rem; }
+
+/* --- диалоги (нативные <dialog> в стиле Bootstrap) ---------------------------------------------- */
+
+dialog {
+  border: 1px solid var(--bs-border-color);
+  border-radius: .6rem;
+  padding: 0;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  max-width: 26rem;
+  width: calc(100% - 2rem);
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, .4);
+}
+dialog::backdrop { background: rgba(0, 0, 0, .5); }
+dialog .dialog-head {
+  display: flex;
+  align-items: center;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+dialog .dialog-head h2 { font-size: 1rem; font-weight: 600; margin: 0; flex: 1; }
+dialog .dialog-head .btn-close { margin: 0; }
+dialog .dialog-body { padding: 1rem; }
+dialog .dialog-foot { display: flex; gap: .4rem; justify-content: flex-end; padding: 0 1rem 1rem; }
+
+/* --- прочее ---------------------------------------------------------------------------------------- */
+
+.empty {
+  color: var(--bs-secondary-color);
+  text-align: center;
+  padding: 2rem 1rem;
+  border: 1px dashed var(--bs-border-color);
+  border-radius: .5rem;
+}
+.empty .big { font-size: 1.6rem; display: block; margin-bottom: .4rem; }
+
+.alert-error { font-size: .82rem; padding: .5rem .75rem; border-radius: .4rem; margin-bottom: .75rem; }
+.alert-ok { font-size: .82rem; padding: .5rem .75rem; border-radius: .4rem; margin-bottom: .75rem; }
+
+#toast {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1080;
+  max-width: 22rem;
+  padding: .55rem .85rem;
+  border-radius: .45rem;
+  background: var(--down);
+  color: #fff;
+  font-size: .85rem;
+  box-shadow: 0 .5rem 1.5rem rgba(0, 0, 0, .35);
+}
+
+.user-card { margin-bottom: .75rem; }
+.user-card h2 { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.user-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0 .75rem; }
+.user-card fieldset { border: 1px solid var(--bs-border-color); border-radius: .4rem; padding: .4rem .6rem .6rem; margin-top: .6rem; }
+.user-card legend { font-size: .75rem; color: var(--bs-secondary-color); padding: 0 .25rem; width: auto; margin: 0; }
+
+.htmx-request { opacity: .6; }

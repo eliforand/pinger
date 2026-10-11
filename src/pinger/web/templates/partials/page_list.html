@@ -1,0 +1,41 @@
+<div id="page-list" data-status-url="/index.json" data-refresh-s="{{ ui_refresh_s }}">
+  {% if error %}<div class="alert alert-danger alert-error" role="alert">{{ error }}</div>{% endif %}
+
+  {% if not pages %}
+    <div class="empty">
+      <span class="big">🗂</span>
+      {% if is_admin %}
+        Страниц пока нет — <a href="/edit">создайте первую</a>.
+      {% else %}
+        Нет доступных страниц.
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="cards">
+      {% for page in pages %}
+        <a class="page-card-link" href="/pages/{{ page.id }}" data-page-id="{{ page.id }}">
+          <div class="page-card">
+            <div class="top">
+              <h2>{{ page.name }}</h2>
+              <span class="badge text-bg-danger" data-role="off"{% if page.enabled %} hidden{% endif %}>выключена</span>
+            </div>
+            {% if page.description %}<div class="desc">{{ page.description }}</div>{% endif %}
+            <div class="summary" data-role="summary">
+              <span class="pill up" data-stat="up">{{ page.up }} up</span>
+              <span class="pill down" data-stat="down"{% if not page.down %} hidden{% endif %}>{{ page.down }} down</span>
+              <span class="pill" data-stat="no_data"{% if not page.no_data %} hidden{% endif %}>{{ page.no_data }} без данных</span>
+              <span class="pill" data-stat="total">всего {{ page.total }}</span>
+            </div>
+            <div class="ratio-bar" data-role="ratio">
+              {% if page.total %}
+                <span class="up" data-part="up" style="width: {{ (page.up * 100 / page.total)|round(2) }}%"></span>
+                <span class="down" data-part="down" style="width: {{ (page.down * 100 / page.total)|round(2) }}%"></span>
+                <span class="nodata" data-part="no_data" style="width: {{ (page.no_data * 100 / page.total)|round(2) }}%"></span>
+              {% endif %}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

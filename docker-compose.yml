@@ -1,0 +1,44 @@
+services:
+  pinger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pinger:latest
+    container_name: pinger
+    init: true
+    # fping требует привилегий для ICMP-сокетов
+    cap_add:
+      - NET_RAW
+    restart: unless-stopped
+    environment:
+      PINGER_DB: /app/data/pinger.db
+      PINGER_LOG_LEVEL: ${PINGER_LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/app/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pinger:latest
+    container_name: pinger-web
+    init: true
+    restart: unless-stopped
+    depends_on:
+      - pinger
+    command:
+      - uvicorn
+      - pinger.web:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+    environment:
+      PINGER_DB: /app/data/pinger.db
+      PINGER_LOG_LEVEL: ${PINGER_LOG_LEVEL:-INFO}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      PINGER_SETUP_TOKEN: ${PINGER_SETUP_TOKEN:-}
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8000:8000"

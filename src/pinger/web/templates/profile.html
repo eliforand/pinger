@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Профиль — pinger{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="card shadow-sm">
+    <h1>Профиль</h1>
+    <p class="small">
+      {{ user.username }}
+      {% if user.role == 'admin' %}<span class="badge text-bg-primary">админ</span>
+      {% else %}<span class="badge text-bg-secondary">пользователь</span>{% endif %}
+    </p>
+    {% if error %}<div class="alert alert-danger alert-error error" role="alert">{{ error }}</div>{% endif %}
+    {% if success %}<div class="alert alert-success alert-ok ok" role="status">{{ success }}</div>{% endif %}
+    <form method="post" action="/profile">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label class="form-label">Текущий пароль</label>
+      <input class="form-control" name="current_password" type="password" autocomplete="current-password" required>
+      <label class="form-label mt-2">Новый пароль (минимум 8 символов)</label>
+      <input class="form-control" name="new_password" type="password" autocomplete="new-password" required minlength="8">
+      <button type="submit" class="btn btn-primary">Сменить пароль</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

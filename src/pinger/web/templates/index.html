@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Страницы — pinger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Страницы</h1>
+  <span class="spacer"></span>
+  {% if is_admin %}
+    <span class="actions">
+      <a href="/edit" class="btn btn-outline-secondary btn-sm">✎ Редактировать</a>
+    </span>
+  {% endif %}
+</div>
+{% include "partials/page_list.html" %}
+{% endblock %}
