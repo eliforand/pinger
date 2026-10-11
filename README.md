@@ -1,55 +1,23 @@
 # pinger
 
-Мониторинг доступности хостов: сервис пинга на
-[`fping`](https://fping.org/) + веб-интерфейс (FastAPI + Jinja2 + HTMX +
-Bootstrap). Одна SQLite-база, два процесса: сервис пинга пишет статусы и
-историю, веб читает статусы и управляет конфигурацией.
+Мониторинг доступности хостов.
 
-- Страницы → строки → адреса; цветные статусы, uptime % за 24 ч, история
-  доступности по интервалам (1 ч / 12 ч / сутки / неделя / всё).
-- Роли и права: админ и пользователи с режимами видимости и постраничным
-  правом редактирования.
-- Автообновление статусов через JSON без перезагрузки страницы.
+## Установка
 
-## Запуск (Docker)
+Docker (нужен `docker compose` v2):
 
 ```bash
-make docker-up     # собрать и поднять pinger + web
+cp .env.example .env   # при необходимости поправить WEB_PORT/SECRET_KEY
+make docker-up         # собрать и запустить
 ```
 
-Откройте `http://localhost:8000`, создайте первого админа на `/setup`.
-База — в `./data` (в git не попадает). Остановить: `make docker-down`,
-логи: `make docker-logs`.
+Веб: `http://localhost:8000` (порт — `WEB_PORT` в `.env`), первый админ
+создаётся на `/setup`. База — в `./data`.
 
-## Запуск без Docker
-
-Нужны Python 3.14, [`uv`](https://docs.astral.sh/uv/) и `fping` в `PATH`
-(`apt install fping`; для ICMP нужен `NET_RAW`).
+Без Docker (Python 3.14, [`uv`](https://docs.astral.sh/uv/), `fping`):
 
 ```bash
-make install   # зависимости
-make run       # сервис пинга
-make web       # веб на http://localhost:8000
+make install
+make run    # сервис пинга
+make web    # веб на http://localhost:8000
 ```
-
-## Основные команды
-
-| Команда           | Действие                                          |
-|-------------------|---------------------------------------------------|
-| `make help`       | все цели                                          |
-| `make test`       | прогон тестов (или `make test-one TEST=<путь>`)   |
-| `make docker-up`  | собрать и запустить в Docker                      |
-| `make run`/`web`  | локальный запуск сервиса / веба                   |
-
-## Настройки
-
-Параметры опроса (`timeout_ms`, `packets`, `interval_ms`,
-`round_interval_s`, `ui_refresh_s`, `max_targets`) меняются в вебе:
-**Настройки** (только админ). Переменные окружения: `PINGER_DB` (путь к
-SQLite), `SECRET_KEY` (подпись сессий), `PINGER_SETUP_TOKEN` (защита
-`/setup`), `PINGER_LOG_LEVEL`.
-
-## Тесты
-
-`make test` — pytest, 150+ тестов: сервис, fping-парсер, история, веб
-(auth/CSRF, права, CRUD, настройки, автообновление).

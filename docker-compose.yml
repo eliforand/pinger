@@ -30,9 +30,9 @@ services:
       - uvicorn
       - pinger.web:app
       - --host
-      - 0.0.0.0
+      - ${WEB_HOST:-0.0.0.0}
       - --port
-      - "8000"
+      - ${WEB_PORT:-8000}
     environment:
       PINGER_DB: /app/data/pinger.db
       PINGER_LOG_LEVEL: ${PINGER_LOG_LEVEL:-INFO}
@@ -41,4 +41,4 @@ services:
     volumes:
       - ./data:/app/data
     ports:
-      - "8000:8000"
+      - "${WEB_PORT:-8000}:${WEB_PORT:-8000}"
