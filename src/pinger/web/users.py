@@ -212,6 +212,38 @@ async def reset_password(
     conn.commit()
     return RedirectResponse("/users", status_code=303)
 
+@router.post("/users/{user_id}/delete")
+async def delete_user(
+    user_id: int,
+    request: Request,
+    admin: sqlite3.Row = Depends(require_admin),
+    conn: sqlite3.Connection = Depends(get_conn),
+):
+    target = conn.execute(
+        "SELECT * FROM users WHERE id=?", (user_id,)
+    ).fetchone()
+    if target is None:
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
+    form = await request.form()
+    check_csrf(request, form)
+
+    error = None
+    if int(target["id"]) == int(admin["id"]):
+        error = "Нельзя удалить собственную учётную запись"
+    elif (
+        target["role"] == "admin"
+        and target["is_active"]
+        and _active_admins(conn) <= 1
+    ):
+        error = "Нельзя удалить последнего активного администратора"
+    if error:
+        return render(
+            request, "users.html", user=admin, **_users_context(conn, error)
+        )
+
+    conn.execute("DELETE FROM users WHERE id=?", (user_id,))
+    conn.commit()
+    return RedirectResponse("/users", status_code=303)
 
 # --- профиль -------------------------------------------------------------
 

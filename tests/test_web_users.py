@@ -209,3 +209,118 @@ def test_profile_requires_login(tmp_path):
     response = client.get("/profile")
     assert response.status_code == 303
     assert response.headers["location"] == "/login"
+
+def _user_id(app, username):
+    conn = db.connect(app.state.db_path)
+    row = conn.execute(
+        "SELECT id FROM users WHERE username=?", (username,)
+    ).fetchone()
+    conn.close()
+    return int(row["id"])
+
+
+def test_users_page_shows_delete_button(admin_client):
+    client, app = admin_client
+    add_user(app.state.db_path, "carol", role="user")
+    response = client.get("/users")
+    assert response.status_code == 200
+    assert f'action="/users/{_user_id(app, "carol")}/delete"' in response.text
+    assert "Удалить пользователя" in response.text
+    # своя карточка помечена и без кнопки удаления
+    assert "Это вы" in response.text
+
+
+def test_admin_deletes_user(admin_client):
+    client, app = admin_client
+    uid = add_user(app.state.db_path, "carol", role="user")
+
+    token = get_csrf(client, "/users")
+    response = client.post(f"/users/{uid}/delete", data={"csrf_token": token})
+    assert response.status_code == 303
+    assert response.headers["location"] == "/users"
+
+    conn = db.connect(app.state.db_path)
+    assert (
+        conn.execute("SELECT COUNT(*) FROM users WHERE id=?", (uid,)).fetchone()[0]
+        == 0
+    )
+    conn.close()
+
+    client2, _ = make_client(app.state.db_path.parent)
+    assert login(client2, "carol").status_code == 200  # логин больше не проходит
+
+
+def test_delete_user_removes_permissions(admin_client):
+    client, app = admin_client
+    conn = db.connect(app.state.db_path)
+    page_id = hosts.create_page(conn, "p1")
+    conn.close()
+    uid = add_user(app.state.db_path, "carol", role="user", access_mode="only")
+    conn = db.connect(app.state.db_path)
+    conn.execute(
+        "INSERT INTO user_page_access (user_id, page_id) VALUES (?, ?)", (uid, page_id)
+    )
+    conn.execute(
+        "INSERT INTO user_page_edit (user_id, page_id) VALUES (?, ?)", (uid, page_id)
+    )
+    conn.commit()
+    conn.close()
+
+    token = get_csrf(client, "/users")
+    assert (
+        client.post(f"/users/{uid}/delete", data={"csrf_token": token}).status_code
+        == 303
+    )
+
+    conn = db.connect(app.state.db_path)
+    access = conn.execute(
+        "SELECT COUNT(*) FROM user_page_access WHERE user_id=?", (uid,)
+    ).fetchone()[0]
+    edit = conn.execute(
+        "SELECT COUNT(*) FROM user_page_edit WHERE user_id=?", (uid,)
+    ).fetchone()[0]
+    conn.close()
+    assert access == 0
+    assert edit == 0
+
+
+def test_cannot_delete_self(admin_client):
+    client, app = admin_client
+    admin_id = _user_id(app, "admin")
+
+    token = get_csrf(client, "/users")
+    response = client.post(f"/users/{admin_id}/delete", data={"csrf_token": token})
+    assert response.status_code == 200
+    assert "собственную" in response.text
+
+    conn = db.connect(app.state.db_path)
+    assert (
+        conn.execute("SELECT COUNT(*) FROM users WHERE id=?", (admin_id,)).fetchone()[0]
+        == 1
+    )
+    conn.close()
+
+
+def test_delete_user_requires_admin(tmp_path):
+    client, app = make_client(tmp_path)
+    add_user(app.state.db_path, "admin", role="admin")
+    uid = add_user(app.state.db_path, "bob", role="user")
+    login(client, "bob")
+
+    token = get_csrf(client, "/profile")
+    response = client.post(f"/users/{uid}/delete", data={"csrf_token": token})
+    assert response.status_code == 403
+
+
+def test_delete_user_requires_csrf(admin_client):
+    client, app = admin_client
+    uid = add_user(app.state.db_path, "carol", role="user")
+    response = client.post(f"/users/{uid}/delete", data={})
+    assert response.status_code == 400
+
+
+def test_delete_unknown_user(admin_client):
+    client, app = admin_client
+    token = get_csrf(client, "/users")
+    response = client.post("/users/999999/delete", data={"csrf_token": token})
+    assert response.status_code == 404

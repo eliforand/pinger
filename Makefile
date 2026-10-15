@@ -5,10 +5,30 @@ UV      ?= uv
 PYTEST  ?= $(UV) run pytest
 TEST    ?= tests/
 
-.PHONY: help install sync test test-one run web docker-build docker-up docker-down docker-logs clean check
+# --- systemd (см. deploy/systemd) ---------------------------------------
+PROJECT_DIR   ?= $(CURDIR)
+SERVICE_USER  ?= $(or $(SUDO_USER),$(shell id -un))
+SERVICE_GROUP ?= $(shell id -gn $(SERVICE_USER))
+DATA_DIR      ?= $(PROJECT_DIR)/data
+ENV_FILE      ?= $(PROJECT_DIR)/.env
+WEB_HOST      ?= 0.0.0.0
+WEB_PORT      ?= 8000
+SYSTEMD_DIR   ?= /etc/systemd/system
+SUDO          ?= sudo
+DAEMON_RELOAD ?= 1
+ENABLE        ?= 0
+SYSTEMD_ENV = PROJECT_DIR="$(PROJECT_DIR)" SERVICE_USER="$(SERVICE_USER)" \
+	SERVICE_GROUP="$(SERVICE_GROUP)" DATA_DIR="$(DATA_DIR)" \
+	ENV_FILE="$(ENV_FILE)" WEB_HOST="$(WEB_HOST)" WEB_PORT="$(WEB_PORT)" \
+	SYSTEMD_DIR="$(SYSTEMD_DIR)" SUDO="$(SUDO)" \
+	DAEMON_RELOAD="$(DAEMON_RELOAD)" ENABLE="$(ENABLE)"
+
+.PHONY: help install sync test test-one run web docker-build docker-up docker-down docker-logs clean check \
+	service-env service-install service-uninstall service-enable service-disable \
+	service-start service-stop service-restart service-status service-logs
 
 help: ## Показать эту справку
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
 install: ## Установить зависимости (uv sync, включая dev-группу)
 	$(UV) sync
@@ -38,6 +58,38 @@ docker-down: ## Остановить и удалить контейнеры: mak
 
 docker-logs: ## Логи сервисов: make docker-logs
 	docker compose logs -f
+
+# --- systemd -----------------------------------------------------------
+
+service-env: ## Создать .env из примера (если ещё нет)
+	@test -f "$(ENV_FILE)" || { cp deploy/systemd/pinger.env.example "$(ENV_FILE)"; echo "создан $(ENV_FILE)"; }
+
+service-install: ## Установить systemd-юниты pinger (нужен sudo)
+	@$(SYSTEMD_ENV) deploy/systemd/install.sh install
+
+service-uninstall: ## Удалить systemd-юниты pinger
+	@$(SYSTEMD_ENV) deploy/systemd/install.sh uninstall
+
+service-enable: ## Включить юниты в автозапуск
+	$(SUDO) systemctl enable pinger.service pinger-web.service
+
+service-disable: ## Отключить юниты от автозапуска
+	$(SUDO) systemctl disable pinger.service pinger-web.service
+
+service-start: ## Запустить сервисы
+	$(SUDO) systemctl start pinger.service pinger-web.service
+
+service-stop: ## Остановить сервисы
+	$(SUDO) systemctl stop pinger.service pinger-web.service
+
+service-restart: ## Перезапустить сервисы
+	$(SUDO) systemctl restart pinger.service pinger-web.service
+
+service-status: ## Статус сервисов
+	-$(SUDO) systemctl status --no-pager pinger.service pinger-web.service
+
+service-logs: ## Смотреть логи сервисов (journalctl -f)
+	$(SUDO) journalctl -f -u pinger.service -u pinger-web.service
 
 check: ## Тесты + проверка импорта веб-приложения
 	$(PYTEST) -q

@@ -83,6 +83,16 @@
         </div>
         <button type="submit" class="btn btn-outline-secondary btn-sm">Сбросить пароль</button>
       </form>
+
+      <form method="post" action="/users/{{ u.id }}/delete" class="mt-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {% if u.id == user.id %}
+          <span class="text-secondary small">Это вы</span>
+        {% else %}
+          <button type="submit" class="btn btn-outline-danger btn-sm"
+                  data-confirm="Удалить пользователя «{{ u.username }}»?">Удалить пользователя</button>
+        {% endif %}
+      </form>
     </div>
   </div>
 {% endfor %}

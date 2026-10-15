@@ -1,0 +1,30 @@
+[Unit]
+Description=pinger — сервис пинга хостов (fping)
+Documentation=file://@PROJECT_DIR@/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@SERVICE_USER@
+Group=@SERVICE_GROUP@
+WorkingDirectory=@PROJECT_DIR@
+EnvironmentFile=-@ENV_FILE@
+Environment=PINGER_DB=@DATA_DIR@/pinger.db
+ExecStart=@PYTHON@ -m pinger
+Restart=on-failure
+RestartSec=5
+
+# fping открывает ICMP-сокеты — достаточно CAP_NET_RAW без полного root.
+AmbientCapabilities=CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_RAW
+
+# Базовая изоляция процесса.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=@DATA_DIR@
+
+[Install]
+WantedBy=multi-user.target

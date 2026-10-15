@@ -1,0 +1,25 @@
+[Unit]
+Description=pinger — веб-интерфейс (uvicorn)
+Documentation=file://@PROJECT_DIR@/README.md
+After=network-online.target pinger.service
+Wants=network-online.target pinger.service
+
+[Service]
+Type=simple
+User=@SERVICE_USER@
+Group=@SERVICE_GROUP@
+WorkingDirectory=@PROJECT_DIR@
+EnvironmentFile=-@ENV_FILE@
+Environment=PINGER_DB=@DATA_DIR@/pinger.db
+ExecStart=@PYTHON@ -m uvicorn pinger.web:app --host @WEB_HOST@ --port @WEB_PORT@
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=@DATA_DIR@
+
+[Install]
+WantedBy=multi-user.target
